@@ -796,207 +796,109 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Carrossel de trabalhos
-            const carousel = document.getElementById('carousel');
+            // Configuração do carrossel
+            const carousel = document.querySelector('.carousel-container');
             const dots = document.querySelectorAll('.carousel-dot');
             const prevBtn = document.querySelector('.carousel-arrow.prev');
             const nextBtn = document.querySelector('.carousel-arrow.next');
+            const items = document.querySelectorAll('.carousel-item');
+            
             let currentIndex = 0;
-            const totalItems = document.querySelectorAll('.carousel-item').length;
-            let autoScrollInterval;
-            let isDragging = false;
-            let startPos = 0;
-            let currentTranslate = 0;
-            let prevTranslate = 0;
-            let animationID;
-            
-            // Touch events para mobile
-            carousel.addEventListener('touchstart', touchStart);
-            carousel.addEventListener('touchend', touchEnd);
-            carousel.addEventListener('touchmove', touchMove);
-            
-            // Mouse events para desktop
-            carousel.addEventListener('mousedown', touchStart);
-            carousel.addEventListener('mouseup', touchEnd);
-            carousel.addEventListener('mouseleave', touchEnd);
-            carousel.addEventListener('mousemove', touchMove);
-            
-            function touchStart(e) {
-                if (e.type === 'touchstart') {
-                    startPos = e.touches[0].clientX;
-                } else {
-                    startPos = e.clientX;
-                    e.preventDefault();
-                }
+            const totalItems = items.length;
+            let scrollInterval;
+            const scrollDelay = 3000; // 3 segundos por slide
+            let isAnimating = false;
+
+            // Função para mover o carrossel
+            function moveToSlide(index) {
+                if (isAnimating) return;
                 
-                isDragging = true;
-                clearInterval(autoScrollInterval);
-                animationID = requestAnimationFrame(animation);
-            }
-            
-            function touchEnd() {
-                isDragging = false;
-                cancelAnimationFrame(animationID);
-                
-                const movedBy = currentTranslate - prevTranslate;
-                
-                if (movedBy < -100 && currentIndex < totalItems - 1) {
-                    currentIndex += 1;
-                }
-                
-                if (movedBy > 100 && currentIndex > 0) {
-                    currentIndex -= 1;
-                }
-                
-                setPositionByIndex();
-                startAutoScroll();
-            }
-            
-            function touchMove(e) {
-                if (isDragging) {
-                    const currentPosition = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
-                    currentTranslate = prevTranslate + currentPosition - startPos;
-                }
-            }
-            
-            function animation() {
-                setSliderPosition();
-                if (isDragging) requestAnimationFrame(animation);
-            }
-            
-            function setSliderPosition() {
-                carousel.style.transform = `translateX(${currentTranslate}px)`;
-            }
-            
-            function setPositionByIndex() {
-                currentTranslate = currentIndex * -window.innerWidth;
-                prevTranslate = currentTranslate;
-                setSliderPosition();
-                updateDots();
-            }
-            
-            function updateCarousel() {
+                isAnimating = true;
+                currentIndex = index;
                 carousel.style.transform = `translateX(-${currentIndex * 100}%)`;
                 updateDots();
+                
+                setTimeout(() => {
+                    isAnimating = false;
+                }, 500); // Tempo da animação CSS
             }
-            
+
+            // Avança para o próximo slide
+            function nextSlide() {
+                const newIndex = (currentIndex + 1) % totalItems;
+                moveToSlide(newIndex);
+            }
+
+            // Volta para o slide anterior
+            function prevSlide() {
+                const newIndex = (currentIndex - 1 + totalItems) % totalItems;
+                moveToSlide(newIndex);
+            }
+
+            // Atualiza os dots de navegação
             function updateDots() {
                 dots.forEach((dot, index) => {
                     dot.classList.toggle('active', index === currentIndex);
                 });
             }
-            
-            function nextSlide() {
-                if (currentIndex < totalItems - 1) {
-                    currentIndex += 1;
-                } else {
-                    currentIndex = 0;
-                }
-                updateCarousel();
-            }
-            
-            function prevSlide() {
-                if (currentIndex > 0) {
-                    currentIndex -= 1;
-                } else {
-                    currentIndex = totalItems - 1;
-                }
-                updateCarousel();
-            }
-            
-            dots.forEach((dot, index) => {
-                dot.addEventListener('click', () => {
-                    currentIndex = index;
-                    updateCarousel();
-                    resetAutoScroll();
-                });
-            });
-            
-            prevBtn.addEventListener('click', () => {
-                prevSlide();
-                resetAutoScroll();
-            });
-            
-            nextBtn.addEventListener('click', () => {
-                nextSlide();
-                resetAutoScroll();
-            });
-            
+
+            // Inicia o autoscroll
             function startAutoScroll() {
-                autoScrollInterval = setInterval(nextSlide, 5000);
+                scrollInterval = setInterval(() => {
+                    if (!isAnimating) {
+                        nextSlide();
+                    }
+                }, scrollDelay);
             }
-            
-            function resetAutoScroll() {
-                clearInterval(autoScrollInterval);
-                startAutoScroll();
+
+            // Pausa o autoscroll
+            function pauseAutoScroll() {
+                clearInterval(scrollInterval);
             }
-            
-            // Iniciar carrossel automático
-            startAutoScroll();
-            
-            // Pausar carrossel quando o mouse estiver sobre ele
-            carousel.parentElement.addEventListener('mouseenter', () => {
-                clearInterval(autoScrollInterval);
-            });
-            
-            carousel.parentElement.addEventListener('mouseleave', () => {
-                startAutoScroll();
-            });
-            
-            // Formulário para WhatsApp
-            const form = document.getElementById('contact-form');
-            
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const name = document.getElementById('name').value;
-                const phone = document.getElementById('phone').value;
-                const email = document.getElementById('email').value;
-                const service = document.getElementById('service').value;
-                const message = document.getElementById('message').value;
-                
-                const formattedPhone = phone.replace(/\D/g, '');
-                const whatsappMessage = `*Nova solicitação de orçamento:*%0A%0A*Nome:* ${name}%0A*E-mail:* ${email}%0A*Serviço:* ${service}%0A%0A*Mensagem:*%0A${message || 'Nenhum detalhe adicional fornecido'}`;
-                const whatsappUrl = `https://wa.me/55${formattedPhone}?text=${whatsappMessage}`;
-                
-                window.open(whatsappUrl, '_blank');
-                form.reset();
-            });
-            
-            // Máscara para telefone
-            const phoneInput = document.getElementById('phone');
-            phoneInput.addEventListener('input', function(e) {
-                const value = e.target.value.replace(/\D/g, '');
-                let formattedValue = '';
-                
-                if (value.length > 0) {
-                    formattedValue = '(' + value.substring(0, 2);
-                }
-                if (value.length > 2) {
-                    formattedValue += ') ' + value.substring(2, 7);
-                }
-                if (value.length > 7) {
-                    formattedValue += '-' + value.substring(7, 11);
-                }
-                
-                e.target.value = formattedValue;
-            });
-            
-            // Suave rolagem para links âncora
-            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-                anchor.addEventListener('click', function(e) {
-                    if (this.getAttribute('href') !== '#') {
-                        e.preventDefault();
-                        const target = document.querySelector(this.getAttribute('href'));
-                        if (target) {
-                            window.scrollTo({
-                                top: target.offsetTop - 80,
-                                behavior: 'smooth'
-                            });
+
+            // Configura os event listeners
+            function setupEventListeners() {
+                // Navegação por dots
+                dots.forEach((dot, index) => {
+                    dot.addEventListener('click', () => {
+                        if (!isAnimating) {
+                            pauseAutoScroll();
+                            moveToSlide(index);
+                            setTimeout(startAutoScroll, scrollDelay);
                         }
+                    });
+                });
+
+                // Botões de navegação
+                prevBtn.addEventListener('click', () => {
+                    if (!isAnimating) {
+                        pauseAutoScroll();
+                        prevSlide();
+                        setTimeout(startAutoScroll, scrollDelay);
                     }
                 });
-            });
+
+                nextBtn.addEventListener('click', () => {
+                    if (!isAnimating) {
+                        pauseAutoScroll();
+                        nextSlide();
+                        setTimeout(startAutoScroll, scrollDelay);
+                    }
+                });
+
+                // Pausa no hover
+                const carouselWrapper = document.querySelector('.carousel');
+                carouselWrapper.addEventListener('mouseenter', pauseAutoScroll);
+                carouselWrapper.addEventListener('mouseleave', startAutoScroll);
+            }
+
+            // Inicialização
+            function init() {
+                setupEventListeners();
+                startAutoScroll();
+            }
+
+            init();
         });
     </script>
 </body>
