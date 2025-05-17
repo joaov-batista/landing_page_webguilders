@@ -795,112 +795,160 @@
         </div>
     </footer>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Configuração do carrossel
-            const carousel = document.querySelector('.carousel-container');
-            const dots = document.querySelectorAll('.carousel-dot');
-            const prevBtn = document.querySelector('.carousel-arrow.prev');
-            const nextBtn = document.querySelector('.carousel-arrow.next');
-            const items = document.querySelectorAll('.carousel-item');
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Configuração do carrossel (mantenha esse código que já existe)
+        const carousel = document.querySelector('.carousel-container');
+        const dots = document.querySelectorAll('.carousel-dot');
+        const prevBtn = document.querySelector('.carousel-arrow.prev');
+        const nextBtn = document.querySelector('.carousel-arrow.next');
+        const items = document.querySelectorAll('.carousel-item');
+        
+        let currentIndex = 0;
+        const totalItems = items.length;
+        let scrollInterval;
+        const scrollDelay = 3000;
+        let isAnimating = false;
+
+        function moveToSlide(index) {
+            if (isAnimating) return;
             
-            let currentIndex = 0;
-            const totalItems = items.length;
-            let scrollInterval;
-            const scrollDelay = 5000;
-            let isAnimating = false;
+            isAnimating = true;
+            currentIndex = index;
+            carousel.style.transform = `translateX(-${currentIndex * 100}%)`;
+            updateDots();
+            
+            setTimeout(() => {
+                isAnimating = false;
+            }, 500);
+        }
 
-            // Função para mover o carrossel
-            function moveToSlide(index) {
-                if (isAnimating) return;
-                
-                isAnimating = true;
-                currentIndex = index;
-                carousel.style.transform = `translateX(-${currentIndex * 100}%)`;
-                updateDots();
-                
-                setTimeout(() => {
-                    isAnimating = false;
-                }, 500); // Tempo da animação CSS
-            }
+        function nextSlide() {
+            const newIndex = (currentIndex + 1) % totalItems;
+            moveToSlide(newIndex);
+        }
 
-            // Avança para o próximo slide
-            function nextSlide() {
-                const newIndex = (currentIndex + 1) % totalItems;
-                moveToSlide(newIndex);
-            }
+        function prevSlide() {
+            const newIndex = (currentIndex - 1 + totalItems) % totalItems;
+            moveToSlide(newIndex);
+        }
 
-            // Volta para o slide anterior
-            function prevSlide() {
-                const newIndex = (currentIndex - 1 + totalItems) % totalItems;
-                moveToSlide(newIndex);
-            }
+        function updateDots() {
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentIndex);
+            });
+        }
 
-            // Atualiza os dots de navegação
-            function updateDots() {
-                dots.forEach((dot, index) => {
-                    dot.classList.toggle('active', index === currentIndex);
-                });
-            }
+        function startAutoScroll() {
+            scrollInterval = setInterval(() => {
+                if (!isAnimating) {
+                    nextSlide();
+                }
+            }, scrollDelay);
+        }
 
-            // Inicia o autoscroll
-            function startAutoScroll() {
-                scrollInterval = setInterval(() => {
-                    if (!isAnimating) {
-                        nextSlide();
-                    }
-                }, scrollDelay);
-            }
+        function pauseAutoScroll() {
+            clearInterval(scrollInterval);
+        }
 
-            // Pausa o autoscroll
-            function pauseAutoScroll() {
-                clearInterval(scrollInterval);
-            }
-
-            // Configura os event listeners
-            function setupEventListeners() {
-                // Navegação por dots
-                dots.forEach((dot, index) => {
-                    dot.addEventListener('click', () => {
-                        if (!isAnimating) {
-                            pauseAutoScroll();
-                            moveToSlide(index);
-                            setTimeout(startAutoScroll, scrollDelay);
-                        }
-                    });
-                });
-
-                // Botões de navegação
-                prevBtn.addEventListener('click', () => {
+        function setupEventListeners() {
+            dots.forEach((dot, index) => {
+                dot.addEventListener('click', () => {
                     if (!isAnimating) {
                         pauseAutoScroll();
-                        prevSlide();
+                        moveToSlide(index);
                         setTimeout(startAutoScroll, scrollDelay);
                     }
                 });
+            });
 
-                nextBtn.addEventListener('click', () => {
-                    if (!isAnimating) {
-                        pauseAutoScroll();
-                        nextSlide();
-                        setTimeout(startAutoScroll, scrollDelay);
-                    }
-                });
+            prevBtn.addEventListener('click', () => {
+                if (!isAnimating) {
+                    pauseAutoScroll();
+                    prevSlide();
+                    setTimeout(startAutoScroll, scrollDelay);
+                }
+            });
 
-                // Pausa no hover
-                const carouselWrapper = document.querySelector('.carousel');
-                carouselWrapper.addEventListener('mouseenter', pauseAutoScroll);
-                carouselWrapper.addEventListener('mouseleave', startAutoScroll);
-            }
+            nextBtn.addEventListener('click', () => {
+                if (!isAnimating) {
+                    pauseAutoScroll();
+                    nextSlide();
+                    setTimeout(startAutoScroll, scrollDelay);
+                }
+            });
 
-            // Inicialização
-            function init() {
-                setupEventListeners();
-                startAutoScroll();
-            }
+            const carouselWrapper = document.querySelector('.carousel');
+            carouselWrapper.addEventListener('mouseenter', pauseAutoScroll);
+            carouselWrapper.addEventListener('mouseleave', startAutoScroll);
+        }
 
-            init();
+        function init() {
+            setupEventListeners();
+            startAutoScroll();
+        }
+
+        init();
+
+        // =============================================
+        // NOVO CÓDIGO PARA O FORMULÁRIO (ADICIONE DAQUI PARA BAIXO)
+        // =============================================
+
+        // Configuração do formulário de contato
+        const contactForm = document.getElementById('contact-form');
+        
+        contactForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Obter os valores do formulário
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const service = document.getElementById('service').value;
+            const message = document.getElementById('message').value;
+            
+            // Formatar a mensagem para o WhatsApp
+            const whatsappMessage = `Olá WebGuilders! Gostaria de solicitar um orçamento.\n\n` +
+                                   `*Nome:* ${name}\n` +
+                                   `*E-mail:* ${email}\n` +
+                                   `*WhatsApp:* ${phone}\n` +
+                                   `*Serviço de Interesse:* ${service}\n` +
+                                   `*Detalhes do Projeto:* ${message}\n\n` +
+                                   `Por favor, entre em contato comigo!`;
+            
+            // Codificar a mensagem para URL
+            const encodedMessage = encodeURIComponent(whatsappMessage);
+            
+            // Número de telefone
+            const phoneNumber = '5571991478061';
+            
+            // Criar o link do WhatsApp
+            const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+            
+            // Abrir o WhatsApp em uma nova aba
+            window.open(whatsappUrl, '_blank');
+            
+            // Limpar o formulário (opcional)
+            contactForm.reset();
         });
-    </script>
+
+        // Validação do telefone (formato WhatsApp)
+        const phoneInput = document.getElementById('phone');
+        phoneInput.addEventListener('input', function(e) {
+            // Remove tudo que não é número
+            let value = this.value.replace(/\D/g, '');
+            
+            // Formatação básica: (00) 00000-0000
+            if (value.length > 2) {
+                value = `(${value.substring(0, 2)}) ${value.substring(2)}`;
+            }
+            if (value.length > 10) {
+                value = `${value.substring(0, 10)}-${value.substring(10, 15)}`;
+            }
+            
+            this.value = value;
+        });
+    });
+</script>
 </body>
 </html>
